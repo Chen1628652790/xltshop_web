@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/xlt/shop_web/user_web/forms"
 	"github.com/xlt/shop_web/user_web/global"
 	"github.com/xlt/shop_web/user_web/global/response"
 	"github.com/xlt/shop_web/user_web/proto"
@@ -57,6 +60,37 @@ func GetUserList(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, userList)
+}
+
+func PasswordLogin(ctx *gin.Context) {
+	passwordLoginForm := forms.PassWordLoginForm{}
+	if err := ctx.ShouldBindJSON(&passwordLoginForm); err != nil {
+		HandleValidatorError(ctx, err)
+		return
+	}
+}
+
+func HandleValidatorError(ctx *gin.Context, err error) {
+	e, ok := err.(validator.ValidationErrors)
+	if ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": removeTopStruct(e.Translate(global.Trans)),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"msg": err.Error(),
+	})
+	return
+}
+
+func removeTopStruct(fileds map[string]string) map[string]string {
+	rsp := map[string]string{}
+	for field, err := range fileds {
+		rsp[field[strings.Index(field, ".")+1:]] = err
+	}
+	return rsp
 }
 
 func HandleGrpcErrorToHttp(ctx *gin.Context, err error) {

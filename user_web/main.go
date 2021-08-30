@@ -11,6 +11,7 @@ import (
 func main() {
 	initialize.InitLogger()
 	initialize.InitConfig()
+	initialize.InitTrans("zh")
 	engine := initialize.InitRouter()
 
 	zap.S().Infow("用户服务启动", "port", global.ServerConfig.Port)
