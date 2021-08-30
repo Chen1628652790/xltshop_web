@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -26,11 +27,15 @@ func GetUserList(ctx *gin.Context) {
 		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())
 		return
 	}
-
 	userClient := proto.NewUserClient(conn)
+
+	pn := ctx.DefaultQuery("pn", "0")
+	psize := ctx.DefaultQuery("psize", "2")
+	pnInt, _ := strconv.Atoi(pn)
+	psizeInt, _ := strconv.Atoi(psize)
 	rsp, err := userClient.GetUserList(context.Background(), &proto.PageInfo{
-		Pn:    0,
-		PSize: 0,
+		Pn:    uint32(pnInt),
+		PSize: uint32(psizeInt),
 	})
 	if err != nil {
 		zap.S().Errorw("userClient.GetUserList failed", "msg", err.Error())
