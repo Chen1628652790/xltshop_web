@@ -1,0 +1,6 @@
+name: 'user_web'
+port: 8021
+mode: 'debug'
+user_srv:
+  host: '127.0.0.1'
+  port: 50051
