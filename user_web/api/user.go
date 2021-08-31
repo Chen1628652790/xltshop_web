@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
@@ -18,6 +19,8 @@ import (
 	"github.com/xlt/shop_web/user_web/forms"
 	"github.com/xlt/shop_web/user_web/global"
 	"github.com/xlt/shop_web/user_web/global/response"
+	"github.com/xlt/shop_web/user_web/middleware"
+	"github.com/xlt/shop_web/user_web/model"
 	"github.com/xlt/shop_web/user_web/proto"
 )
 
@@ -68,6 +71,65 @@ func PasswordLogin(ctx *gin.Context) {
 		HandleValidatorError(ctx, err)
 		return
 	}
+
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d",
+		global.ServerConfig.UserSrvInfo.Host,
+		global.ServerConfig.UserSrvInfo.Port),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())
+		return
+	}
+
+	userClient := proto.NewUserClient(conn)
+	user, err := userClient.GetUserByMobile(context.Background(),
+		&proto.MobileRequest{Mobile: passwordLoginForm.Mobile},
+	)
+	if err != nil {
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	result, err := userClient.CheckPassWord(context.Background(), &proto.PassWordCheckInfo{
+		Password:          passwordLoginForm.Password,
+		EncryptedPassword: user.PassWord,
+	})
+	if err != nil {
+		HandleValidatorError(ctx, err)
+		return
+	}
+
+	if !result.Success {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"msg": "用户名或密码错误",
+		})
+		return
+	}
+
+	j := middleware.NewJWT()
+	claims := model.CustomClaims{
+		ID:          uint(user.Id),
+		NickName:    user.NickName,
+		AuthorityId: uint(user.Role),
+		StandardClaims: jwt.StandardClaims{
+			NotBefore: time.Now().Unix(),
+			ExpiresAt: time.Now().Unix() + int64(global.ServerConfig.JwtInfo.ExpireSecond*global.ServerConfig.JwtInfo.ExpireCount),
+			Issuer:    "xiaolatiao",
+		},
+	}
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		zap.S().Errorw("j.CreateToken failed", "msg", err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"id":        user.Id,
+		"nick_name": user.NickName,
+		"msg":       "登录成功",
+		"token":     token,
+	})
 }
 
 func HandleValidatorError(ctx *gin.Context, err error) {
@@ -118,7 +180,10 @@ func HandleGrpcErrorToHttp(ctx *gin.Context, err error) {
 					"msg": "其他错误",
 				})
 			}
-			return
+		} else {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"msg": "未知错误",
+			})
 		}
 	}
 }
