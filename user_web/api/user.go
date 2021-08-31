@@ -68,7 +68,16 @@ func GetUserList(ctx *gin.Context) {
 func PasswordLogin(ctx *gin.Context) {
 	passwordLoginForm := forms.PassWordLoginForm{}
 	if err := ctx.ShouldBindJSON(&passwordLoginForm); err != nil {
+		zap.S().Errorw("ctx.ShouldBindJSON failed", "msg", err.Error())
 		HandleValidatorError(ctx, err)
+		return
+	}
+
+	// 第三个参数为true表示验证码验证过后就会删除
+	if !store.Verify(passwordLoginForm.CaptchaId, passwordLoginForm.Captcha, true) {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"captcha": "验证码错误",
+		})
 		return
 	}
 

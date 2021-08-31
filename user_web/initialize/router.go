@@ -13,6 +13,7 @@ func InitRouter() *gin.Engine {
 
 	v1Group := engine.Group("/u/v1")
 	router.InitUserRouter(v1Group)
+	router.InitCaptchaRouter(v1Group)
 
 	return engine
 }
