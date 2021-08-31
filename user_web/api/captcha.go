@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mojocn/base64Captcha"
-	"go.uber.org/zap"
 )
 
 var store = base64Captcha.DefaultMemStore
@@ -15,7 +14,6 @@ func GetCaptcha(ctx *gin.Context) {
 	cp := base64Captcha.NewCaptcha(driver, store)
 	id, b64s, err := cp.Generate()
 	if err != nil {
-		zap.S().Errorw("生成验证码错误", "msg", err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "生成验证码错误",
 		})

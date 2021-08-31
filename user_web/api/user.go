@@ -68,7 +68,6 @@ func GetUserList(ctx *gin.Context) {
 func PasswordLogin(ctx *gin.Context) {
 	passwordLoginForm := forms.PassWordLoginForm{}
 	if err := ctx.ShouldBindJSON(&passwordLoginForm); err != nil {
-		zap.S().Errorw("ctx.ShouldBindJSON failed", "msg", err.Error())
 		HandleValidatorError(ctx, err)
 		return
 	}
@@ -138,6 +137,59 @@ func PasswordLogin(ctx *gin.Context) {
 		"nick_name": user.NickName,
 		"msg":       "登录成功",
 		"token":     token,
+	})
+}
+
+func Register(ctx *gin.Context) {
+	registerForm := forms.RegisterForm{}
+	if err := ctx.ShouldBind(&registerForm); err != nil {
+		HandleValidatorError(ctx, err)
+		return
+	}
+
+	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvInfo.Host, global.ServerConfig.UserSrvInfo.Port), grpc.WithInsecure())
+	if err != nil {
+		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	userClient := proto.NewUserClient(userConn)
+	user, err := userClient.CreateUser(context.Background(), &proto.CreateUserInfo{
+		NickName: registerForm.Mobile,
+		PassWord: registerForm.PassWord,
+		Mobile:   registerForm.Mobile,
+	})
+	if err != nil {
+		zap.S().Errorw("userClient.CreateUser failed", "msg", err.Error())
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	j := middleware.NewJWT()
+	claims := model.CustomClaims{
+		ID:          uint(user.Id),
+		NickName:    user.NickName,
+		AuthorityId: uint(user.Role),
+		StandardClaims: jwt.StandardClaims{
+			NotBefore: time.Now().Unix(),
+			ExpiresAt: time.Now().Unix() + int64(global.ServerConfig.JwtInfo.ExpireSecond*global.ServerConfig.JwtInfo.ExpireCount),
+			Issuer:    "xiaolatiao",
+		},
+	}
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "生成token失败",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"id":         user.Id,
+		"nick_name":  user.NickName,
+		"token":      token,
+		"expired_at": (time.Now().Unix() + 60*60*24*30) * 1000,
 	})
 }
 

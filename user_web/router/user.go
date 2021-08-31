@@ -13,6 +13,7 @@ func InitUserRouter(v1Group *gin.RouterGroup) {
 
 	userGroup.GET("/list", middleware.JWTAuth(), middleware.AdminAuth(), api.GetUserList)
 	userGroup.POST("/pwd_login", api.PasswordLogin)
+	userGroup.POST("/register", api.Register)
 
 	zap.S().Infow("初始化用户路由成功")
 }
