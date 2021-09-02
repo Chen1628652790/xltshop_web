@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/consul/api"
+	_ "github.com/mbobakov/grpc-consul-resolver" // It's important
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -12,7 +13,25 @@ import (
 )
 
 func InitClient() {
-	initUserClient()
+	initUserClientLoadBalance()
+}
+
+func initUserClientLoadBalance() {
+	userConn, err := grpc.Dial(
+		fmt.Sprintf("consul://%s:%d/%s?wait=14s",
+			global.ServerConfig.ConsulInfo.Host,
+			global.ServerConfig.ConsulInfo.Port,
+			global.ServerConfig.UserSrvInfo.Name,
+		),
+		grpc.WithInsecure(),
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`),
+	)
+	if err != nil {
+		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())
+	}
+
+	userSrvClient := proto.NewUserClient(userConn)
+	global.UserClient = userSrvClient
 }
 
 func initUserClient() {
