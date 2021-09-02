@@ -5,6 +5,10 @@ mode: 'debug'
 user_srv:
   name: 'user_srv'
 
+consul:
+  host: '192.168.199.243'
+  port: 8500
+
 jwt:
   signature_key: '1HKunAzbi&Z7Rq$3S40$ATyd%bvgJ9vC'
   expire_second: 3600

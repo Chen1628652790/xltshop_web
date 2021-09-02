@@ -28,7 +28,9 @@ func initUserClient() {
 		return
 	}
 
-	data, err := consulClient.Agent().ServicesWithFilter(fmt.Sprintf(`Service == "%s"`, global.ServerConfig.UserSrvInfo.Name))
+	data, err := consulClient.Agent().ServicesWithFilter(
+		fmt.Sprintf(`Service == "%s"`, global.ServerConfig.UserSrvInfo.Name),
+	)
 	if err != nil {
 		zap.S().Errorw("consulClient.Agent().ServicesWithFilter failed", "msg", err.Error())
 		return
