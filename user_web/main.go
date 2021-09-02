@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/xlt/shop_web/user_web/global"
+
 	"go.uber.org/zap"
 
+	"github.com/xlt/shop_web/user_web/global"
 	"github.com/xlt/shop_web/user_web/initialize"
 )
 
 func main() {
 	initialize.InitLogger()
 	initialize.InitConfig()
+	initialize.InitClient()
 	initialize.InitTrans("zh")
 	engine := initialize.InitRouter()
 

@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -25,21 +23,11 @@ import (
 )
 
 func GetUserList(ctx *gin.Context) {
-	ip := global.ServerConfig.UserSrvInfo.Host
-	port := global.ServerConfig.UserSrvInfo.Port
-
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", ip, port), grpc.WithInsecure())
-	if err != nil {
-		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())
-		return
-	}
-	userClient := proto.NewUserClient(conn)
-
 	pn := ctx.DefaultQuery("pn", "0")
 	psize := ctx.DefaultQuery("psize", "2")
 	pnInt, _ := strconv.Atoi(pn)
 	psizeInt, _ := strconv.Atoi(psize)
-	rsp, err := userClient.GetUserList(context.Background(), &proto.PageInfo{
+	rsp, err := global.UserClient.GetUserList(context.Background(), &proto.PageInfo{
 		Pn:    uint32(pnInt),
 		PSize: uint32(psizeInt),
 	})
@@ -80,18 +68,7 @@ func PasswordLogin(ctx *gin.Context) {
 		return
 	}
 
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d",
-		global.ServerConfig.UserSrvInfo.Host,
-		global.ServerConfig.UserSrvInfo.Port),
-		grpc.WithInsecure(),
-	)
-	if err != nil {
-		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())
-		return
-	}
-
-	userClient := proto.NewUserClient(conn)
-	user, err := userClient.GetUserByMobile(context.Background(),
+	user, err := global.UserClient.GetUserByMobile(context.Background(),
 		&proto.MobileRequest{Mobile: passwordLoginForm.Mobile},
 	)
 	if err != nil {
@@ -99,7 +76,7 @@ func PasswordLogin(ctx *gin.Context) {
 		return
 	}
 
-	result, err := userClient.CheckPassWord(context.Background(), &proto.PassWordCheckInfo{
+	result, err := global.UserClient.CheckPassWord(context.Background(), &proto.PassWordCheckInfo{
 		Password:          passwordLoginForm.Password,
 		EncryptedPassword: user.PassWord,
 	})
@@ -147,15 +124,7 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvInfo.Host, global.ServerConfig.UserSrvInfo.Port), grpc.WithInsecure())
-	if err != nil {
-		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())
-		HandleGrpcErrorToHttp(ctx, err)
-		return
-	}
-
-	userClient := proto.NewUserClient(userConn)
-	user, err := userClient.CreateUser(context.Background(), &proto.CreateUserInfo{
+	user, err := global.UserClient.CreateUser(context.Background(), &proto.CreateUserInfo{
 		NickName: registerForm.Mobile,
 		PassWord: registerForm.PassWord,
 		Mobile:   registerForm.Mobile,
