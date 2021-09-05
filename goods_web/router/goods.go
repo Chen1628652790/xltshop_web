@@ -5,13 +5,12 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/xlt/shop_web/goods_web/api/goods"
-	"github.com/xlt/shop_web/goods_web/middleware"
 )
 
 func InitGoodsRouter(v1Group *gin.RouterGroup) {
-	goodsGroup := v1Group.Group("/user")
+	goodsGroup := v1Group.Group("/goods")
 
-	goodsGroup.GET("/list", middleware.JWTAuth(), middleware.AdminAuth(), goods.GetGoodsList)
+	goodsGroup.GET("", goods.List)
 
-	zap.S().Infow("初始化用户路由成功")
+	zap.S().Infow("初始化商品路由成功")
 }
