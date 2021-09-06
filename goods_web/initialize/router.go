@@ -23,6 +23,7 @@ func InitRouter() *gin.Engine {
 
 	v1Group := engine.Group("/g/v1")
 	router.InitGoodsRouter(v1Group)
+	router.InitCategoryRouter(v1Group)
 
 	return engine
 }

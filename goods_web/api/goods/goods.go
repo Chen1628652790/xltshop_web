@@ -4,14 +4,11 @@ import (
 	"context"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
+	"github.com/xlt/shop_web/goods_web/api"
 	"github.com/xlt/shop_web/goods_web/forms"
 	"github.com/xlt/shop_web/goods_web/global"
 	"github.com/xlt/shop_web/goods_web/proto"
@@ -64,7 +61,8 @@ func List(ctx *gin.Context) {
 	response, err := global.GoodsClient.GoodsList(context.Background(), request)
 	if err != nil {
 		zap.S().Errorw("global.GoodsClient.GoodsList failed", "msg", err.Error())
-		HandleGrpcErrorToHttp(ctx, err)
+		api.HandleGrpcErrorToHttp(ctx, err)
+		return
 	}
 	rowCount = len(response.Data)
 
@@ -123,7 +121,8 @@ func New(ctx *gin.Context) {
 		BrandId:         goodsForm.Brand,
 	})
 	if err != nil {
-		HandleGrpcErrorToHttp(ctx, err)
+		zap.S().Errorw("global.GoodsClient.CreateGoods failed", "msg", err.Error())
+		api.HandleGrpcErrorToHttp(ctx, err)
 		return
 	}
 
@@ -141,7 +140,7 @@ func Detail(ctx *gin.Context) {
 	response, err := global.GoodsClient.GetGoodsDetail(context.Background(), &proto.GoodInfoRequest{Id: int32(goodsIDInt)})
 	if err != nil {
 		zap.S().Errorw("global.GoodsClient.GetGoodsDetail failed", "msg", err.Error())
-		HandleGrpcErrorToHttp(ctx, err)
+		api.HandleGrpcErrorToHttp(ctx, err)
 		return
 	}
 
@@ -181,7 +180,7 @@ func Delete(ctx *gin.Context) {
 	_, err = global.GoodsClient.DeleteGoods(context.Background(), &proto.DeleteGoodsInfo{Id: int32(goodsIDInt)})
 	if err != nil {
 		zap.S().Errorw("global.GoodsClient.DeleteGoods failed", "msg", err.Error())
-		HandleGrpcErrorToHttp(ctx, err)
+		api.HandleGrpcErrorToHttp(ctx, err)
 		return
 	}
 
@@ -209,7 +208,7 @@ func UpdateStatus(ctx *gin.Context) {
 		OnSale: *goodsStatusForm.OnSale,
 	}); err != nil {
 		zap.S().Errorw("global.GoodsClient.UpdateGoods failed", "msg", err.Error())
-		HandleGrpcErrorToHttp(ctx, err)
+		api.HandleGrpcErrorToHttp(ctx, err)
 		return
 	}
 
@@ -248,67 +247,11 @@ func Update(ctx *gin.Context) {
 		BrandId:         goodsForm.Brand,
 	}); err != nil {
 		zap.S().Errorw("global.GoodsClient.UpdateGoods failed", "msg", err.Error())
-		HandleGrpcErrorToHttp(ctx, err)
+		api.HandleGrpcErrorToHttp(ctx, err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"msg": "更新成功",
 	})
-}
-
-func HandleValidatorError(ctx *gin.Context, err error) {
-	e, ok := err.(validator.ValidationErrors)
-	if ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": removeTopStruct(e.Translate(global.Trans)),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"msg": err.Error(),
-	})
-	return
-}
-
-func removeTopStruct(fileds map[string]string) map[string]string {
-	rsp := map[string]string{}
-	for field, err := range fileds {
-		rsp[field[strings.Index(field, ".")+1:]] = err
-	}
-	return rsp
-}
-
-func HandleGrpcErrorToHttp(ctx *gin.Context, err error) {
-	if err != nil {
-		if e, ok := status.FromError(err); ok {
-			switch e.Code() {
-			case codes.NotFound:
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"msg": e.Message(),
-				})
-			case codes.Internal:
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"msg": "内部错误",
-				})
-			case codes.InvalidArgument:
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"msg": "参数错误",
-				})
-			case codes.Unavailable:
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"msg": "服务不可用",
-				})
-			default:
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"msg": "其他错误",
-				})
-			}
-		} else {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"msg": "未知错误",
-			})
-		}
-	}
 }
