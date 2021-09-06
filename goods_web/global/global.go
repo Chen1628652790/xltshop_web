@@ -8,10 +8,18 @@ import (
 )
 
 var (
+	// goods_web服务配置
 	ServerConfig = &config.ServerConfig{}
-	Trans        ut.Translator
-	//UserClient   proto.UserClient
+
+	// 翻译
+	Trans ut.Translator
+
+	// 商品服务(goods_srv)链接
 	GoodsClient proto.GoodsClient
+
+	// nacos配置
 	NacosConfig = &config.NacosConfig{}
-	Registry    consul.RegistryClient
+
+	// consul注册中心
+	Registry consul.RegistryClient
 )

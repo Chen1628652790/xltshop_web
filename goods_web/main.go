@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
 
@@ -26,7 +22,7 @@ func main() {
 	}
 
 	serviceId := fmt.Sprintf("%s", uuid.NewV4())
-	initialize.InitRegistry(serviceId)
+	global.RegisterServer(serviceId)
 
 	zap.S().Infow("商品服务正在启动", "port", global.ServerConfig.Port)
 	go func() {
@@ -35,12 +31,5 @@ func main() {
 		}
 	}()
 
-	quit := make(chan os.Signal)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	if err := global.Registry.DeRegister(serviceId); err != nil {
-		zap.S().Errorw("registerClient.DeRegister failed", "msg", err.Error())
-		return
-	}
-	zap.S().Infow("注销服务成功", "port", global.ServerConfig.Port, "serviveID", serviceId)
+	global.QuitServer(serviceId)
 }

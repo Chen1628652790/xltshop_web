@@ -49,9 +49,7 @@ func (r *Registry) Register(address string, port int, name string, tags []string
 	serviceRegistration.Tags = tags
 	serviceRegistration.Address = address
 	serviceRegistration.Check = healthCheck
-
-	err = client.Agent().ServiceRegister(serviceRegistration)
-	if err != nil {
+	if err = client.Agent().ServiceRegister(serviceRegistration); err != nil {
 		zap.S().Errorw("client.Agent().ServiceRegister failed", "msg", err.Error())
 		return err
 	}
