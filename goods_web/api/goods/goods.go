@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/xlt/shop_web/goods_web/forms"
 	"github.com/xlt/shop_web/goods_web/global"
 	"github.com/xlt/shop_web/goods_web/proto"
 )
@@ -97,6 +98,162 @@ func List(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"total": response.Total,
 		"data":  goodsList,
+	})
+}
+
+func New(ctx *gin.Context) {
+	goodsForm := forms.GoodsForm{}
+	if err := ctx.ShouldBindJSON(&goodsForm); err != nil {
+		zap.S().Errorw("ctx.ShouldBindJSON failed", "msg", err.Error())
+		return
+	}
+
+	rsp, err := global.GoodsClient.CreateGoods(context.Background(), &proto.CreateGoodsInfo{
+		Name:            goodsForm.Name,
+		GoodsSn:         goodsForm.GoodsSn,
+		Stocks:          goodsForm.Stocks,
+		MarketPrice:     goodsForm.MarketPrice,
+		ShopPrice:       goodsForm.ShopPrice,
+		GoodsBrief:      goodsForm.GoodsBrief,
+		ShipFree:        *goodsForm.ShipFree,
+		Images:          goodsForm.Images,
+		DescImages:      goodsForm.DescImages,
+		GoodsFrontImage: goodsForm.FrontImage,
+		CategoryId:      goodsForm.CategoryId,
+		BrandId:         goodsForm.Brand,
+	})
+	if err != nil {
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, rsp)
+}
+
+func Detail(ctx *gin.Context) {
+	goodsID := ctx.Param("id")
+	goodsIDInt, err := strconv.Atoi(goodsID)
+	if err != nil {
+		zap.S().Errorw("strconv.Atoi failed", "msg", err.Error())
+		return
+	}
+
+	response, err := global.GoodsClient.GetGoodsDetail(context.Background(), &proto.GoodInfoRequest{Id: int32(goodsIDInt)})
+	if err != nil {
+		zap.S().Errorw("global.GoodsClient.GetGoodsDetail failed", "msg", err.Error())
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	goodsInfo := map[string]interface{}{
+		"id":          response.Id,
+		"name":        response.Name,
+		"goods_brief": response.GoodsBrief,
+		"desc":        response.GoodsDesc,
+		"ship_free":   response.ShipFree,
+		"images":      response.Images,
+		"desc_images": response.DescImages,
+		"front_image": response.GoodsFrontImage,
+		"shop_price":  response.ShopPrice,
+		"ctegory": map[string]interface{}{
+			"id":   response.Category.Id,
+			"name": response.Category.Name,
+		},
+		"brand": map[string]interface{}{
+			"id":   response.Brand.Id,
+			"name": response.Brand.Name,
+			"logo": response.Brand.Logo,
+		},
+		"is_hot":  response.IsHot,
+		"is_new":  response.IsNew,
+		"on_sale": response.OnSale,
+	}
+	ctx.JSON(http.StatusOK, goodsInfo)
+}
+
+func Delete(ctx *gin.Context) {
+	goodsID := ctx.Param("id")
+	goodsIDInt, err := strconv.Atoi(goodsID)
+	if err != nil {
+		zap.S().Errorw("strconv.Atoi failed", "msg", err.Error())
+		return
+	}
+	_, err = global.GoodsClient.DeleteGoods(context.Background(), &proto.DeleteGoodsInfo{Id: int32(goodsIDInt)})
+	if err != nil {
+		zap.S().Errorw("global.GoodsClient.DeleteGoods failed", "msg", err.Error())
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+func UpdateStatus(ctx *gin.Context) {
+	goodsStatusForm := forms.GoodsStatusForm{}
+	if err := ctx.ShouldBindJSON(&goodsStatusForm); err != nil {
+		zap.S().Errorw("ctx.ShouldBindJSON failed", "msg", err.Error())
+		return
+	}
+
+	goodsID := ctx.Param("id")
+	goodsIDInt, err := strconv.Atoi(goodsID)
+	if err != nil {
+		zap.S().Errorw("strconv.Atoi failed", "msg", err.Error())
+		return
+	}
+
+	if _, err = global.GoodsClient.UpdateGoods(context.Background(), &proto.CreateGoodsInfo{
+		Id:     int32(goodsIDInt),
+		IsHot:  *goodsStatusForm.IsHot,
+		IsNew:  *goodsStatusForm.IsNew,
+		OnSale: *goodsStatusForm.OnSale,
+	}); err != nil {
+		zap.S().Errorw("global.GoodsClient.UpdateGoods failed", "msg", err.Error())
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"msg": "修改成功",
+	})
+}
+
+func Update(ctx *gin.Context) {
+	goodsForm := forms.GoodsForm{}
+	if err := ctx.ShouldBindJSON(&goodsForm); err != nil {
+		zap.S().Errorw("ctx.ShouldBindJSON failed", "msg", err.Error())
+		return
+	}
+
+	goodsID := ctx.Param("id")
+	goodsIDInt, err := strconv.Atoi(goodsID)
+	if err != nil {
+		zap.S().Errorw("strconv.Atoi failed", "msg", err.Error())
+		return
+	}
+
+	if _, err = global.GoodsClient.UpdateGoods(context.Background(), &proto.CreateGoodsInfo{
+		Id:              int32(goodsIDInt),
+		Name:            goodsForm.Name,
+		GoodsSn:         goodsForm.GoodsSn,
+		Stocks:          goodsForm.Stocks,
+		MarketPrice:     goodsForm.MarketPrice,
+		ShopPrice:       goodsForm.ShopPrice,
+		GoodsBrief:      goodsForm.GoodsBrief,
+		ShipFree:        *goodsForm.ShipFree,
+		Images:          goodsForm.Images,
+		DescImages:      goodsForm.DescImages,
+		GoodsFrontImage: goodsForm.FrontImage,
+		CategoryId:      goodsForm.CategoryId,
+		BrandId:         goodsForm.Brand,
+	}); err != nil {
+		zap.S().Errorw("global.GoodsClient.UpdateGoods failed", "msg", err.Error())
+		HandleGrpcErrorToHttp(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"msg": "更新成功",
 	})
 }
 
