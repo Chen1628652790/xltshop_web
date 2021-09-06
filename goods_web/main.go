@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
 
 	"github.com/xlt/shop_web/goods_web/global"
 	"github.com/xlt/shop_web/goods_web/initialize"
-	"github.com/xlt/shop_web/goods_web/utils/register/consul"
 )
 
 func main() {
@@ -23,23 +25,22 @@ func main() {
 		//global.ServerConfig.Port = utils.GetFreePort()
 	}
 
-	registerClient := consul.NewRegistryClient(
-		global.ServerConfig.ConsulInfo.Host,
-		global.ServerConfig.ConsulInfo.Port,
-	)
 	serviceId := fmt.Sprintf("%s", uuid.NewV4())
-	if err := registerClient.Register(
-		global.ServerConfig.Host,
-		global.ServerConfig.Port,
-		global.ServerConfig.Name,
-		global.ServerConfig.Tags,
-		serviceId,
-	); err != nil {
-		zap.S().Errorw("服务注册失败", "msg", err.Error())
-	}
+	initialize.InitRegistry(serviceId)
 
 	zap.S().Infow("商品服务正在启动", "port", global.ServerConfig.Port)
-	if err := engine.Run(fmt.Sprintf(":%d", global.ServerConfig.Port)); err != nil {
-		zap.S().Fatal("商品服务启动失败")
+	go func() {
+		if err := engine.Run(fmt.Sprintf(":%d", global.ServerConfig.Port)); err != nil {
+			zap.S().Fatal("商品服务启动失败")
+		}
+	}()
+
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	if err := global.Registry.DeRegister(serviceId); err != nil {
+		zap.S().Errorw("registerClient.DeRegister failed", "msg", err.Error())
+		return
 	}
+	zap.S().Infow("注销服务成功", "port", global.ServerConfig.Port, "serviveID", serviceId)
 }

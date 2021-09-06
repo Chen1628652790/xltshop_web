@@ -1,6 +1,8 @@
 package config
 
 type ServerConfig struct {
+	Host        string        `mapstructure:"host" json:"host"`
+	Tags        []string      `mapstructure:"tags" json:"tags"`
 	Name        string        `mapstructure:"name" json:"name"`
 	Port        int           `mapstructure:"port" json:"port"`
 	Mode        string        `mapstructure:"mode" json:"mode"`
