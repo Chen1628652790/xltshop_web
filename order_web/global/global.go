@@ -14,8 +14,14 @@ var (
 	// 翻译
 	Trans ut.Translator
 
-	// 订单服务(order_srv)链接
+	// 订单服务(order_srv)连接
 	OrderClient proto.OrderClient
+
+	// 商品服务(goods_srv)连接
+	GoodsClient proto.GoodsClient
+
+	// 库存服务(inventory_srv)连接
+	InventoryClient proto.InventoryClient
 
 	// nacos配置
 	NacosConfig = &config.NacosConfig{}

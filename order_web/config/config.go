@@ -1,17 +1,27 @@
 package config
 
 type ServerConfig struct {
-	Name         string         `mapstructure:"name" json:"name"`
-	Port         int            `mapstructure:"port" json:"port"`
-	Host         string         `mapstructure:"host" json:"host"`
-	Tags         []string       `mapstructure:"tags" json:"tags"`
-	Mode         string         `mapstructure:"mode" json:"mode"`
-	OrderSrvInfo OrderSrvConfig `mapstructure:"order_srv" json:"order_srv"`
-	JwtInfo      JwtConfig      `mapstructure:"jwt" json:"jwt"`
-	ConsulInfo   ConsulConfig   `mapstructure:"consul" json:"consul"`
+	Name             string          `mapstructure:"name" json:"name"`
+	Port             int             `mapstructure:"port" json:"port"`
+	Host             string          `mapstructure:"host" json:"host"`
+	Tags             []string        `mapstructure:"tags" json:"tags"`
+	Mode             string          `mapstructure:"mode" json:"mode"`
+	OrderSrvInfo     OrderSrvConfig  `mapstructure:"order_srv" json:"order_srv"`
+	InventorySrvInfo InventoryConfig `mapstructure:"inventory_srv" json:"inventory_srv"`
+	GoodsSrvInfo     GoodsSrvConfig  `mapstructure:"goods_srv" json:"goods_srv"`
+	JwtInfo          JwtConfig       `mapstructure:"jwt" json:"jwt"`
+	ConsulInfo       ConsulConfig    `mapstructure:"consul" json:"consul"`
+}
+
+type GoodsSrvConfig struct {
+	Name string `mapstructure:"name" json:"name"`
 }
 
 type OrderSrvConfig struct {
+	Name string `mapstructure:"name" json:"name"`
+}
+
+type InventoryConfig struct {
 	Name string `mapstructure:"name" json:"name"`
 }
 
