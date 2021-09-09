@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/xlt/shop_web/user_web/middleware"
+	"github.com/xlt/shop_web/goods_web/middleware"
 	"go.uber.org/zap"
 
 	"github.com/xlt/shop_web/goods_web/api/goods"

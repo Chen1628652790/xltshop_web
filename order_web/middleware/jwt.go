@@ -8,8 +8,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 
-	"github.com/xlt/shop_web/goods_web/global"
-	"github.com/xlt/shop_web/goods_web/model"
+	"github.com/xlt/shop_web/order_web/global"
+	"github.com/xlt/shop_web/order_web/model"
 )
 
 func JWTAuth() gin.HandlerFunc {
