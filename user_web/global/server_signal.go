@@ -36,5 +36,5 @@ func RegisterServer(serviceID string) {
 		zap.S().Errorw("服务注册失败", "msg", err.Error())
 		return
 	}
-	zap.S().Errorw("服务注册成功", "serviceID", serviceID)
+	zap.S().Infow("服务注册成功", "serviceID", serviceID)
 }

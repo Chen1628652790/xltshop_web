@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
 
