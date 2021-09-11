@@ -11,6 +11,15 @@ type ServerConfig struct {
 	GoodsSrvInfo     GoodsSrvConfig  `mapstructure:"goods_srv" json:"goods_srv"`
 	JwtInfo          JwtConfig       `mapstructure:"jwt" json:"jwt"`
 	ConsulInfo       ConsulConfig    `mapstructure:"consul" json:"consul"`
+	AliPayInfo       AliPayConfig    `mapstructure:"alipay" json:"alipay"`
+}
+
+type AliPayConfig struct {
+	AppID      string `mapstructure:"app_id" json:"app_id"`
+	PrivateKey string `mapstructure:"private_key" json:"private_key"`
+	PublicKey  string `mapstructure:"public_key" json:"public_key"`
+	NotifyURL  string `mapstructure:"notify_url" json:"notify_url"`
+	ReturnURL  string `mapstructure:"return_url" json:"return_url"`
 }
 
 type GoodsSrvConfig struct {

@@ -2,10 +2,12 @@ package order
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/smartwalle/alipay/v3"
 	"go.uber.org/zap"
 
 	"github.com/xlt/shop_web/order_web/api"
@@ -91,44 +93,45 @@ func New(ctx *gin.Context) {
 		return
 	}
 
-	////生成支付宝的支付url
-	//client, err := alipay.New(global.ServerConfig.AliPayInfo.AppID, global.ServerConfig.AliPayInfo.PrivateKey, false)
-	//if err != nil {
-	//	zap.S().Errorw("实例化支付宝失败")
-	//	ctx.JSON(http.StatusInternalServerError, gin.H{
-	//		"msg":err.Error(),
-	//	})
-	//	return
-	//}
-	//err = client.LoadAliPayPublicKey((global.ServerConfig.AliPayInfo.AliPublicKey))
-	//if err != nil {
-	//	zap.S().Errorw("加载支付宝的公钥失败")
-	//	ctx.JSON(http.StatusInternalServerError, gin.H{
-	//		"msg":err.Error(),
-	//	})
-	//	return
-	//}
+	appID := global.ServerConfig.AliPayInfo.AppID
+	privateKey := global.ServerConfig.AliPayInfo.PrivateKey
+	aliPublicKey := global.ServerConfig.AliPayInfo.PublicKey
 
-	//var p = alipay.TradePagePay{}
-	//p.NotifyURL = global.ServerConfig.AliPayInfo.NotifyURL
-	//p.ReturnURL = global.ServerConfig.AliPayInfo.ReturnURL
-	//p.Subject = "慕学生鲜订单-"+rsp.OrderSn
-	//p.OutTradeNo = rsp.OrderSn
-	//p.TotalAmount = strconv.FormatFloat(float64(rsp.Total), 'f', 2, 64)
-	//p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+	client, err := alipay.New(appID, privateKey, false)
+	if err != nil {
+		zap.S().Errorw("alipay.New failed", "msg", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": err.Error(),
+		})
+		return
+	}
 
-	//url, err := client.TradePagePay(p)
-	//if err != nil {
-	//		zap.S().Errorw("生成支付url失败")
-	//		ctx.JSON(http.StatusInternalServerError, gin.H{
-	//			"msg":err.Error(),
-	//		})
-	//		return
-	//}
+	if err := client.LoadAliPayPublicKey(aliPublicKey); err != nil {
+		zap.S().Errorw("client.LoadAliPayPublicKey failed", "msg", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": err.Error(),
+		})
+		return
+	}
+
+	var p = alipay.TradePagePay{}
+	p.NotifyURL = global.ServerConfig.AliPayInfo.NotifyURL
+	p.ReturnURL = global.ServerConfig.AliPayInfo.ReturnURL
+	p.Subject = "生鲜订单-" + rsp.OrderSn
+	p.OutTradeNo = rsp.OrderSn
+	price := strconv.FormatFloat(float64(rsp.Total), 'f', 2, 64)
+	fmt.Println(price)
+	p.TotalAmount = price
+	p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+
+	url, err := client.TradePagePay(p)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"id": rsp.Id,
-		//"alipay_url":url.String(),
+		"id":         rsp.Id,
+		"alipay_url": url.String(),
 	})
 }
 
@@ -185,41 +188,41 @@ func Detail(ctx *gin.Context) {
 	}
 	reMap["goods"] = goodsList
 
-	//生成支付宝的支付url
-	//client, err := alipay.New(global.ServerConfig.AliPayInfo.AppID, global.ServerConfig.AliPayInfo.PrivateKey, false)
-	//if err != nil {
-	//	zap.S().Errorw("实例化支付宝失败")
-	//	ctx.JSON(http.StatusInternalServerError, gin.H{
-	//		"msg":err.Error(),
-	//	})
-	//	return
-	//}
-	//err = client.LoadAliPayPublicKey((global.ServerConfig.AliPayInfo.AliPublicKey))
-	//if err != nil {
-	//	zap.S().Errorw("加载支付宝的公钥失败")
-	//	ctx.JSON(http.StatusInternalServerError, gin.H{
-	//		"msg":err.Error(),
-	//	})
-	//	return
-	//}
+	appID := global.ServerConfig.AliPayInfo.AppID
+	privateKey := global.ServerConfig.AliPayInfo.PrivateKey
+	aliPublicKey := global.ServerConfig.AliPayInfo.PublicKey
 
-	//var p = alipay.TradePagePay{}
-	//p.NotifyURL = global.ServerConfig.AliPayInfo.NotifyURL
-	//p.ReturnURL = global.ServerConfig.AliPayInfo.ReturnURL
-	//p.Subject = "慕学生鲜订单-"+rsp.OrderInfo.OrderSn
-	//p.OutTradeNo = rsp.OrderInfo.OrderSn
-	//p.TotalAmount = strconv.FormatFloat(float64(rsp.OrderInfo.Total), 'f', 2, 64)
-	//p.ProductCode = "FAST_INSTANT_TRADE_PAY"
-	//
-	//url, err := client.TradePagePay(p)
-	//if err != nil {
-	//	zap.S().Errorw("生成支付url失败")
-	//	ctx.JSON(http.StatusInternalServerError, gin.H{
-	//		"msg":err.Error(),
-	//	})
-	//	return
-	//}
-	//reMap["alipay_url"] = url.String()
+	client, err := alipay.New(appID, privateKey, false)
+	if err != nil {
+		zap.S().Errorw("alipay.New failed", "msg", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": err.Error(),
+		})
+		return
+	}
+
+	if err := client.LoadAliPayPublicKey(aliPublicKey); err != nil {
+		zap.S().Errorw("client.LoadAliPayPublicKey failed", "msg", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": err.Error(),
+		})
+		return
+	}
+
+	var p = alipay.TradePagePay{}
+	p.NotifyURL = global.ServerConfig.AliPayInfo.NotifyURL
+	p.ReturnURL = global.ServerConfig.AliPayInfo.ReturnURL
+	p.Subject = "生鲜订单-" + rsp.OrderInfo.OrderSn
+	p.OutTradeNo = rsp.OrderInfo.OrderSn
+	p.TotalAmount = strconv.FormatFloat(float64(rsp.OrderInfo.Total), 'f', 2, 64)
+	p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+
+	url, err := client.TradePagePay(p)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	reMap["alipay_url"] = url.String()
 
 	ctx.JSON(http.StatusOK, reMap)
 }
