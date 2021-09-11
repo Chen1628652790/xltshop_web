@@ -17,3 +17,5 @@
 # customer
 .log
 logs
+tmp
+log
