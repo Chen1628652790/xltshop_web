@@ -2,6 +2,7 @@ package global
 
 import (
 	ut "github.com/go-playground/universal-translator"
+
 	"github.com/xlt/shop_web/userop_web/config"
 	"github.com/xlt/shop_web/userop_web/proto"
 )

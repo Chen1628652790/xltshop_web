@@ -2,7 +2,6 @@ package initialize
 
 import (
 	"fmt"
-	"github.com/xlt/shop_web/userop_web/global"
 	"reflect"
 	"strings"
 
@@ -13,6 +12,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
+
+	"github.com/xlt/shop_web/userop_web/global"
 )
 
 func InitTrans(locale string) (err error) {

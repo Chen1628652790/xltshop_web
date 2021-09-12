@@ -2,15 +2,17 @@ package address
 
 import (
 	"context"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	"github.com/xlt/shop_web/userop_web/api"
 	"github.com/xlt/shop_web/userop_web/forms"
 	"github.com/xlt/shop_web/userop_web/global"
 	"github.com/xlt/shop_web/userop_web/models"
 	"github.com/xlt/shop_web/userop_web/proto"
-	"go.uber.org/zap"
-	"net/http"
-	"strconv"
 )
 
 func List(ctx *gin.Context) {

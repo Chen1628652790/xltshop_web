@@ -2,12 +2,14 @@ package middlewares
 
 import (
 	"errors"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
-	"github.com/xlt/shop_web/userop_web/global"
-	"github.com/xlt/shop_web/userop_web/models"
 	"net/http"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+
+	"github.com/xlt/shop_web/userop_web/global"
+	"github.com/xlt/shop_web/userop_web/models"
 )
 
 func JWTAuth() gin.HandlerFunc {

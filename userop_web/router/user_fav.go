@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+
 	"github.com/xlt/shop_web/userop_web/api/user_fav"
 	"github.com/xlt/shop_web/userop_web/middlewares"
 )
