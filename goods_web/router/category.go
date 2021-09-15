@@ -2,13 +2,14 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/xlt/shop_web/goods_web/middleware"
 	"go.uber.org/zap"
 
 	"github.com/xlt/shop_web/goods_web/api/category"
 )
 
 func InitCategoryRouter(v1Group *gin.RouterGroup) {
-	categoryRouter := v1Group.Group("categorys")
+	categoryRouter := v1Group.Group("categorys").Use(middleware.Trace())
 	{
 		categoryRouter.GET("", category.List)          // 商品类别列表页
 		categoryRouter.DELETE("/:id", category.Delete) // 删除分类

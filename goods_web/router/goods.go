@@ -9,7 +9,7 @@ import (
 )
 
 func InitGoodsRouter(v1Group *gin.RouterGroup) {
-	goodsRouter := v1Group.Group("/goods")
+	goodsRouter := v1Group.Group("/goods").Use(middleware.Trace())
 	{
 		goodsRouter.GET("/", goods.List)
 		goodsRouter.POST("/", middleware.JWTAuth(), middleware.AdminAuth(), goods.New)

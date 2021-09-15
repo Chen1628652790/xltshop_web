@@ -2,12 +2,13 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/xlt/shop_web/goods_web/middleware"
 
 	"github.com/xlt/shop_web/goods_web/api/brand"
 )
 
 func InitBrandRouter(Router *gin.RouterGroup) {
-	brandRouter := Router.Group("brands")
+	brandRouter := Router.Group("brands").Use(middleware.Trace())
 	{
 		brandRouter.GET("", brand.BrandList)          // 品牌列表页
 		brandRouter.DELETE("/:id", brand.DeleteBrand) // 删除品牌
