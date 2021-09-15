@@ -4,11 +4,13 @@ import (
 	"fmt"
 
 	_ "github.com/mbobakov/grpc-consul-resolver"
+	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/xlt/shop_web/goods_web/global"
 	"github.com/xlt/shop_web/goods_web/proto"
+	"github.com/xlt/shop_web/goods_web/utils/otgrpc"
 )
 
 func InitClient() {
@@ -24,6 +26,7 @@ func initGoodsClientLoadBalance() {
 		),
 		grpc.WithInsecure(),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`),
+		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer())),
 	)
 	if err != nil {
 		zap.S().Errorw("grpc.Dial failed", "msg", err.Error())

@@ -58,7 +58,7 @@ func List(ctx *gin.Context) {
 	brandIdInt, _ := strconv.Atoi(brandId)
 	request.Brand = int32(brandIdInt)
 
-	response, err := global.GoodsClient.GoodsList(context.Background(), request)
+	response, err := global.GoodsClient.GoodsList(context.WithValue(context.WithValue(context.Background(), "ginContext", ctx), "ginContext", ctx), request)
 	if err != nil {
 		zap.S().Errorw("global.GoodsClient.GoodsList failed", "msg", err.Error())
 		api.HandleGrpcErrorToHttp(ctx, err)
@@ -106,7 +106,7 @@ func New(ctx *gin.Context) {
 		return
 	}
 
-	rsp, err := global.GoodsClient.CreateGoods(context.Background(), &proto.CreateGoodsInfo{
+	rsp, err := global.GoodsClient.CreateGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.CreateGoodsInfo{
 		Name:            goodsForm.Name,
 		GoodsSn:         goodsForm.GoodsSn,
 		Stocks:          goodsForm.Stocks,
@@ -137,7 +137,7 @@ func Detail(ctx *gin.Context) {
 		return
 	}
 
-	response, err := global.GoodsClient.GetGoodsDetail(context.Background(), &proto.GoodInfoRequest{Id: int32(goodsIDInt)})
+	response, err := global.GoodsClient.GetGoodsDetail(context.WithValue(context.Background(), "ginContext", ctx), &proto.GoodInfoRequest{Id: int32(goodsIDInt)})
 	if err != nil {
 		zap.S().Errorw("global.GoodsClient.GetGoodsDetail failed", "msg", err.Error())
 		api.HandleGrpcErrorToHttp(ctx, err)
@@ -177,7 +177,7 @@ func Delete(ctx *gin.Context) {
 		zap.S().Errorw("strconv.Atoi failed", "msg", err.Error())
 		return
 	}
-	_, err = global.GoodsClient.DeleteGoods(context.Background(), &proto.DeleteGoodsInfo{Id: int32(goodsIDInt)})
+	_, err = global.GoodsClient.DeleteGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.DeleteGoodsInfo{Id: int32(goodsIDInt)})
 	if err != nil {
 		zap.S().Errorw("global.GoodsClient.DeleteGoods failed", "msg", err.Error())
 		api.HandleGrpcErrorToHttp(ctx, err)
@@ -201,7 +201,7 @@ func UpdateStatus(ctx *gin.Context) {
 		return
 	}
 
-	if _, err = global.GoodsClient.UpdateGoods(context.Background(), &proto.CreateGoodsInfo{
+	if _, err = global.GoodsClient.UpdateGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.CreateGoodsInfo{
 		Id:     int32(goodsIDInt),
 		IsHot:  *goodsStatusForm.IsHot,
 		IsNew:  *goodsStatusForm.IsNew,
@@ -231,7 +231,7 @@ func Update(ctx *gin.Context) {
 		return
 	}
 
-	if _, err = global.GoodsClient.UpdateGoods(context.Background(), &proto.CreateGoodsInfo{
+	if _, err = global.GoodsClient.UpdateGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.CreateGoodsInfo{
 		Id:              int32(goodsIDInt),
 		Name:            goodsForm.Name,
 		GoodsSn:         goodsForm.GoodsSn,
